@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.env
+
+# Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE
+.vs/
+.idea/
+*.suo
+*.user
+
+# Mobile specific
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

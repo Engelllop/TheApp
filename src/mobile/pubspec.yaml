@@ -17,6 +17,8 @@ dependencies:
   csv: ^5.1.1
   provider: ^6.1.1
   table_calendar: ^3.0.9
+  pdf: ^3.10.7
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:

@@ -365,6 +365,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
         (_accounts.isNotEmpty ? _accounts.first.id : '');
     int selectedDay = existingExpense?.dayOfMonth ?? 1;
     String selectedCategory = existingExpense?.category ?? 'Otros';
+    String selectedFrequency = existingExpense?.frequency ?? 'Mensual';
 
     final categories = [
       'Comida',
@@ -375,6 +376,8 @@ class _RecurringScreenState extends State<RecurringScreen> {
       'Servicios',
       'Otros'
     ];
+
+    final frequencies = ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Anual'];
 
     showModalBottomSheet(
       context: context,
@@ -434,6 +437,24 @@ class _RecurringScreenState extends State<RecurringScreen> {
                   labelText: 'Monto mensual',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedFrequency,
+                decoration: const InputDecoration(
+                  labelText: 'Frecuencia',
+                  prefixIcon: Icon(Icons.schedule),
+                ),
+                dropdownColor: AppTheme.cardBackground,
+                items: frequencies
+                    .map((f) => DropdownMenuItem(
+                          value: f,
+                          child: Text(f,
+                              style:
+                                  const TextStyle(color: AppTheme.textPrimary)),
+                        ))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => selectedFrequency = v!),
               ),
               const SizedBox(height: 16),
               const Text('Categoría',
@@ -522,6 +543,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
                         accountId: selectedAccountId,
                         dayOfMonth: selectedDay,
                         isActive: existingExpense?.isActive ?? true,
+                        frequency: selectedFrequency,
                       );
                       if (existingExpense == null) {
                         await _repository.addRecurringExpense(expense);

@@ -6,6 +6,8 @@ class RecurringExpense {
   final String accountId;
   final int dayOfMonth;
   final bool isActive;
+  final String frequency;
+  final DateTime startDate;
 
   RecurringExpense({
     required this.id,
@@ -15,7 +17,9 @@ class RecurringExpense {
     required this.accountId,
     required this.dayOfMonth,
     required this.isActive,
-  });
+    this.frequency = 'Mensual',
+    DateTime? startDate,
+  }) : startDate = startDate ?? DateTime.now();
 
   RecurringExpense copyWith({
     String? id,
@@ -25,6 +29,8 @@ class RecurringExpense {
     String? accountId,
     int? dayOfMonth,
     bool? isActive,
+    String? frequency,
+    DateTime? startDate,
   }) {
     return RecurringExpense(
       id: id ?? this.id,
@@ -34,6 +40,8 @@ class RecurringExpense {
       accountId: accountId ?? this.accountId,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       isActive: isActive ?? this.isActive,
+      frequency: frequency ?? this.frequency,
+      startDate: startDate ?? this.startDate,
     );
   }
 
@@ -45,6 +53,8 @@ class RecurringExpense {
         'accountId': accountId,
         'dayOfMonth': dayOfMonth,
         'isActive': isActive,
+        'frequency': frequency,
+        'startDate': startDate.toIso8601String(),
       };
 
   factory RecurringExpense.fromJson(Map<String, dynamic> json) =>
@@ -56,5 +66,9 @@ class RecurringExpense {
         accountId: json['accountId'],
         dayOfMonth: json['dayOfMonth'],
         isActive: json['isActive'],
+        frequency: json['frequency'] ?? 'Mensual',
+        startDate: json['startDate'] != null
+            ? DateTime.parse(json['startDate'])
+            : null,
       );
 }

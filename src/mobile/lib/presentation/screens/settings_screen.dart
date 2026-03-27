@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:the_app/core/theme.dart';
 import 'package:the_app/data/models/transaction.dart';
@@ -9,6 +10,7 @@ import 'package:the_app/data/models/budget.dart';
 import 'package:the_app/data/repositories/transaction_repository.dart';
 import 'package:the_app/data/repositories/account_repository.dart';
 import 'package:the_app/data/repositories/budget_repository.dart';
+import 'package:the_app/data/services/theme_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -230,72 +232,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.accentRed))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildSection(
-                  'DATOS',
-                  [
-                    _buildSettingItem(
-                      icon: Icons.upload,
-                      title: 'Exportar backup',
-                      subtitle: 'Guarda tus datos en un archivo JSON',
-                      onTap: _exportData,
-                    ),
-                    _buildSettingItem(
-                      icon: Icons.download,
-                      title: 'Importar backup',
-                      subtitle: 'Restaura tus datos desde un archivo',
-                      onTap: _importData,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildSection(
-                  'PELIGRO',
-                  [
-                    _buildSettingItem(
-                      icon: Icons.delete_forever,
-                      title: 'Borrar todos los datos',
-                      subtitle: 'Elimina transacciones, cuentas y presupuestos',
-                      onTap: _clearAllData,
-                      isDestructive: true,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentRed.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.account_balance_wallet,
-                            color: AppTheme.accentRed, size: 32),
+          : Consumer<ThemeService>(
+              builder: (context, themeService, _) => ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildSection(
+                    'APARIENCIA',
+                    [
+                      _buildThemeToggle(themeService),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSection(
+                    'DATOS',
+                    [
+                      _buildSettingItem(
+                        icon: Icons.upload,
+                        title: 'Exportar backup',
+                        subtitle: 'Guarda tus datos en un archivo JSON',
+                        onTap: _exportData,
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Finanzas Personales',
-                        style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Versión 1.0.0',
-                        style: TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 12),
+                      _buildSettingItem(
+                        icon: Icons.download,
+                        title: 'Importar backup',
+                        subtitle: 'Restaura tus datos desde un archivo',
+                        onTap: _importData,
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  _buildSection(
+                    'PELIGRO',
+                    [
+                      _buildSettingItem(
+                        icon: Icons.delete_forever,
+                        title: 'Borrar todos los datos',
+                        subtitle:
+                            'Elimina transacciones, cuentas y presupuestos',
+                        onTap: _clearAllData,
+                        isDestructive: true,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentRed.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.account_balance_wallet,
+                              color: AppTheme.accentRed, size: 32),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Finanzas Personales',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Versión 1.0.0',
+                          style: TextStyle(
+                              color: AppTheme.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -354,6 +366,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Icon(Icons.chevron_right,
           color: isDestructive ? AppTheme.accentRed : AppTheme.textSecondary),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildThemeToggle(ThemeService themeService) {
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppTheme.accentYellow.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          themeService.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+          color: AppTheme.accentYellow,
+          size: 20,
+        ),
+      ),
+      title: const Text('Modo oscuro', style: TextStyle(fontSize: 15)),
+      subtitle: Text(
+        themeService.isDarkMode ? 'Activado' : 'Desactivado',
+        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+      ),
+      trailing: Switch(
+        value: themeService.isDarkMode,
+        onChanged: (_) => themeService.toggleTheme(),
+        activeColor: AppTheme.accentRed,
+      ),
     );
   }
 }

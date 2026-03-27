@@ -27,9 +27,10 @@ class TransactionRepository {
     required double amount,
     required DateTime date,
     required bool isExpense,
+    required String accountId,
   }) async {
     final category = await _aiService.categorizeTransaction(description);
-    
+
     final transaction = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       description: description,
@@ -37,12 +38,13 @@ class TransactionRepository {
       date: date,
       category: category,
       isExpense: isExpense,
+      accountId: accountId,
     );
 
     final transactions = await getTransactions();
     transactions.add(transaction);
     await saveTransactions(transactions);
-    
+
     return transaction;
   }
 
@@ -63,5 +65,30 @@ class TransactionRepository {
       }
     }
     return balance;
+  }
+
+  Future<double> getBalanceByAccount(String accountId) async {
+    final transactions = await getTransactions();
+    double balance = 0;
+    for (final t in transactions.where((t) => t.accountId == accountId)) {
+      if (t.isExpense) {
+        balance -= t.amount;
+      } else {
+        balance += t.amount;
+      }
+    }
+    return balance;
+  }
+
+  Future<Map<String, double>> getBalancesByAccount() async {
+    final transactions = await getTransactions();
+    final balances = <String, double>{};
+
+    for (final t in transactions) {
+      final change = t.isExpense ? -t.amount : t.amount;
+      balances[t.accountId] = (balances[t.accountId] ?? 0) + change;
+    }
+
+    return balances;
   }
 }

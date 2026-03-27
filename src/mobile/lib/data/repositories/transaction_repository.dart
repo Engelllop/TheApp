@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction.dart';
+import '../services/ai_service.dart';
 
 class TransactionRepository {
   static const String _key = 'transactions';

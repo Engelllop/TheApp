@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 import os
-from openai import OpenAI
+import json
+import google.generativeai as genai
 
 app = FastAPI(title="TheApp API", version="1.0.0")
 
@@ -15,7 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+api_key = os.getenv("GOOGLE_API_KEY", "")
+if api_key:
+    genai.configure(api_key=api_key)
 
 
 class Transaction(BaseModel):
@@ -54,16 +57,7 @@ CATEGORY_RULES = {
         "almuerzo",
         "cena",
     ],
-    "Transporte": [
-        "uber",
-        "taxi",
-        "gasolina",
-        "combustible",
-        "metro",
-        "bus",
-        "taxi",
-        "peaje",
-    ],
+    "Transporte": ["uber", "taxi", "gasolina", "combustible", "metro", "bus", "peaje"],
     "Entretenimiento": ["netflix", "spotify", "amazon", "pelicula", "cine", "juego"],
     "Compras": ["supermercado", "walmart", "tienda", "compra", "mercadona"],
     "Salud": ["farmacia", "doctor", "medico", "hospital", "medicina"],
@@ -100,11 +94,11 @@ def categorize(request: CategorizeRequest):
 
 @app.post("/api/ai/insights")
 def get_insights(request: InsightsRequest):
-    if not client.api_key:
+    if not api_key:
         return {
-            "resumen": "API key de OpenAI no configurada. Configure OPENAI_API_KEY en el archivo .env",
+            "resumen": "API key de Google no configurada. Configure GOOGLE_API_KEY en el archivo .env",
             "consejos": [
-                "Configure su API key de OpenAI para obtener análisis personalizados",
+                "Configure su API key de Google Gemini para obtener análisis personalizados",
                 "Mientras tanto, use la categorización automática básica",
             ],
             "alerta": None,
@@ -135,7 +129,7 @@ def get_insights(request: InsightsRequest):
             category_totals[t.category] = category_totals.get(t.category, 0) + t.amount
 
     top_category = (
-        max(category_totals, key=category_totals.get) if category_totals else None
+        max(category_totals.items(), key=lambda x: x[1])[0] if category_totals else None
     )
 
     system_prompt = """Eres un asesor financiero personal experto, analítico pero motivador. 
@@ -158,19 +152,10 @@ Categoría con más gastos: {top_category or "Ninguna"}
 Genera insights financieros personalizados."""
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.7,
-            max_tokens=500,
-        )
+        model = genai.GenerativeModel("gemini-1.5-flash", system_prompt=system_prompt)
+        response = model.generate_content(user_prompt)
 
-        import json
-
-        result_text = response.choices[0].message.content.strip()
+        result_text = response.text.strip()
         if result_text.startswith("```json"):
             result_text = result_text[7:]
         if result_text.endswith("```"):
@@ -184,7 +169,7 @@ Genera insights financieros personalizados."""
                 f"Tu categoría principal de gasto es {top_category or 'desconocida'}"
                 if top_category
                 else "Agrega más transacciones para obtener mejores consejos",
-                "Revisa tus gastos en {top_category} si es posible"
+                "Revisa tus gastos en транспорт"
                 if top_category
                 else "Comienza a registrar tus gastos para ver análisis detallados",
                 "Intenta ahorrar al menos el 20% de tus ingresos",

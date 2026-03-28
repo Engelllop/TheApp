@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_app/core/theme.dart';
+import 'package:the_app/data/models/account.dart';
+import 'package:the_app/data/repositories/account_repository.dart';
 import 'package:intl/intl.dart';
 
 class Investment {
   final String id;
   final String name;
   final String type;
+  final String accountId;
   final double amount;
   final double currentValue;
   final double expectedReturn;
@@ -18,6 +21,7 @@ class Investment {
     required this.id,
     required this.name,
     required this.type,
+    required this.accountId,
     required this.amount,
     required this.currentValue,
     required this.expectedReturn,
@@ -33,6 +37,7 @@ class Investment {
         'id': id,
         'name': name,
         'type': type,
+        'accountId': accountId,
         'amount': amount,
         'currentValue': currentValue,
         'expectedReturn': expectedReturn,
@@ -44,6 +49,7 @@ class Investment {
         id: json['id'],
         name: json['name'],
         type: json['type'],
+        accountId: json['accountId'] ?? '',
         amount: (json['amount'] as num).toDouble(),
         currentValue: (json['currentValue'] as num).toDouble(),
         expectedReturn: (json['expectedReturn'] as num).toDouble(),
@@ -55,6 +61,7 @@ class Investment {
     String? id,
     String? name,
     String? type,
+    String? accountId,
     double? amount,
     double? currentValue,
     double? expectedReturn,
@@ -65,6 +72,7 @@ class Investment {
       id: id ?? this.id,
       name: name ?? this.name,
       type: type ?? this.type,
+      accountId: accountId ?? this.accountId,
       amount: amount ?? this.amount,
       currentValue: currentValue ?? this.currentValue,
       expectedReturn: expectedReturn ?? this.expectedReturn,
@@ -84,6 +92,7 @@ class InvestmentsScreen extends StatefulWidget {
 class _InvestmentsScreenState extends State<InvestmentsScreen> {
   static const String _key = 'investments';
   List<Investment> _investments = [];
+  List<Account> _accounts = [];
   bool _isLoading = true;
 
   @override
@@ -100,7 +109,26 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       final List<dynamic> jsonList = jsonDecode(data);
       _investments = jsonList.map((json) => Investment.fromJson(json)).toList();
     }
+    _accounts = await AccountRepository().getAccounts();
     setState(() => _isLoading = false);
+  }
+
+  String _getAccountName(String accountId) {
+    try {
+      final account = _accounts.firstWhere((a) => a.id == accountId);
+      return account.name;
+    } catch (e) {
+      return 'Sin cuenta';
+    }
+  }
+
+  Color _getAccountColor(String accountId) {
+    try {
+      final account = _accounts.firstWhere((a) => a.id == accountId);
+      return Color(int.parse(account.color.replaceFirst('#', '0xFF')));
+    } catch (e) {
+      return AppTheme.accentBlue;
+    }
   }
 
   Future<void> _saveData() async {
@@ -448,6 +476,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         text: existingInvestment?.expectedReturn.toString() ?? '0');
     String selectedType = existingInvestment?.type ?? 'Acciones';
     String selectedColor = existingInvestment?.color ?? '#457b9d';
+    String selectedAccountId = existingInvestment?.accountId ??
+        (_accounts.isNotEmpty ? _accounts.first.id : '');
 
     final colors = [
       {'code': '#e63946', 'name': 'Rojo'},
@@ -589,6 +619,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             DateTime.now().millisecondsSinceEpoch.toString(),
                         name: name,
                         type: selectedType,
+                        accountId: selectedAccountId,
                         amount: amount,
                         currentValue: current,
                         expectedReturn: returns,

@@ -56,19 +56,67 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const TransactionsScreen(),
-    const BudgetScreen(),
-    const RecurringScreen(),
-    const AccountsScreen(),
-    const TransferScreen(),
-    const GoalsScreen(),
-    const StatsScreen(),
-    const CalendarScreen(),
-    const DebtsScreen(),
-    const InvestmentsScreen(),
-    const AiAdvisorScreen(),
+  final List<_NavItem> _navItems = [
+    _NavItem(
+        icon: Icons.dashboard_outlined,
+        selectedIcon: Icons.dashboard,
+        label: 'Dashboard',
+        screen: const DashboardScreen()),
+    _NavItem(
+        icon: Icons.receipt_long_outlined,
+        selectedIcon: Icons.receipt_long,
+        label: 'Movimientos',
+        screen: const TransactionsScreen()),
+    _NavItem(
+        icon: Icons.account_balance_wallet_outlined,
+        selectedIcon: Icons.account_balance_wallet,
+        label: 'Presupuestos',
+        screen: const BudgetScreen()),
+    _NavItem(
+        icon: Icons.repeat_outlined,
+        selectedIcon: Icons.repeat,
+        label: 'Recurrentes',
+        screen: const RecurringScreen()),
+    _NavItem(
+        icon: Icons.account_balance_outlined,
+        selectedIcon: Icons.account_balance,
+        label: 'Cuentas',
+        screen: const AccountsScreen()),
+    _NavItem(
+        icon: Icons.swap_horiz_outlined,
+        selectedIcon: Icons.swap_horiz,
+        label: 'Transferir',
+        screen: const TransferScreen()),
+    _NavItem(
+        icon: Icons.flag_outlined,
+        selectedIcon: Icons.flag,
+        label: 'Metas',
+        screen: const GoalsScreen()),
+    _NavItem(
+        icon: Icons.calendar_month_outlined,
+        selectedIcon: Icons.calendar_month,
+        label: 'Calendario',
+        screen: const CalendarScreen()),
+    _NavItem(
+        icon: Icons.credit_card_outlined,
+        selectedIcon: Icons.credit_card,
+        label: 'Deudas',
+        screen: const DebtsScreen()),
+    _NavItem(
+        icon: Icons.trending_up_outlined,
+        selectedIcon: Icons.trending_up,
+        label: 'Inversiones',
+        screen: const InvestmentsScreen()),
+    _NavItem(
+        icon: Icons.bar_chart_outlined,
+        selectedIcon: Icons.bar_chart,
+        label: 'Estadísticas',
+        screen: const StatsScreen()),
+    _NavItem(
+        icon: Icons.smart_toy_outlined,
+        selectedIcon: Icons.smart_toy,
+        label: 'Asistente IA',
+        screen: const AiAdvisorScreen()),
   ];
 
   void _showQuickAdd() {
@@ -80,105 +128,296 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  void _openSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useDrawer = screenWidth < 800;
 
+    if (useDrawer) {
+      return _buildDrawerLayout(isDark);
+    } else {
+      return _buildRailLayout(isDark);
+    }
+  }
+
+  Widget _buildDrawerLayout(bool isDark) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      appBar: AppBar(
+        title: Text(_navItems[_selectedIndex].label),
+        backgroundColor:
+            isDark ? AppTheme.background : AppTheme.lightBackground,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettings,
+          ),
+        ],
+      ),
+      drawer: _buildDrawer(isDark),
+      body: _navItems[_selectedIndex].screen,
       floatingActionButton: FloatingActionButton(
         onPressed: _showQuickAdd,
         backgroundColor: AppTheme.accentRed,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
-              width: 1,
+    );
+  }
+
+  Widget _buildDrawer(bool isDark) {
+    return Drawer(
+      backgroundColor:
+          isDark ? AppTheme.cardBackground : AppTheme.lightCardBackground,
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [const Color(0xFF1a1a2e), const Color(0xFF16213e)]
+                    : [Colors.white, Colors.grey[100]!],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentRed.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.account_balance_wallet,
+                      color: AppTheme.accentRed, size: 32),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Finanzas',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Tu asistente financiero',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) {
-            if (index == 11) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-              return;
-            }
-            setState(() => _selectedIndex = index);
-          },
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard, color: AppTheme.accentRed),
-              label: 'Dashboard',
+          Expanded(
+            child: ListView.builder(
+              itemCount: _navItems.length,
+              itemBuilder: (context, index) {
+                final item = _navItems[index];
+                final isSelected = index == _selectedIndex;
+
+                return ListTile(
+                  leading: Icon(
+                    isSelected ? item.selectedIcon : item.icon,
+                    color: isSelected
+                        ? AppTheme.accentRed
+                        : (isDark
+                            ? AppTheme.textSecondary
+                            : AppTheme.lightTextSecondary),
+                  ),
+                  title: Text(
+                    item.label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppTheme.accentRed
+                          : (isDark
+                              ? AppTheme.textPrimary
+                              : AppTheme.lightTextPrimary),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedTileColor: AppTheme.accentRed.withValues(alpha: 0.1),
+                  onTap: () {
+                    setState(() => _selectedIndex = index);
+                    Navigator.pop(context);
+                  },
+                );
+              },
             ),
-            NavigationDestination(
-              icon: const Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long, color: AppTheme.accentRed),
-              label: 'Movimientos',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.account_balance_wallet_outlined),
-              selectedIcon:
-                  Icon(Icons.account_balance_wallet, color: AppTheme.accentRed),
-              label: 'Presupuestos',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.repeat_outlined),
-              selectedIcon: Icon(Icons.repeat, color: AppTheme.accentRed),
-              label: 'Recurrentes',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.account_balance_outlined),
-              selectedIcon:
-                  Icon(Icons.account_balance, color: AppTheme.accentRed),
-              label: 'Cuentas',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.swap_horiz_outlined),
-              selectedIcon: Icon(Icons.swap_horiz, color: AppTheme.accentRed),
-              label: 'Transferir',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.flag_outlined),
-              selectedIcon: Icon(Icons.flag, color: AppTheme.accentRed),
-              label: 'Metas',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart, color: AppTheme.accentRed),
-              label: 'Estadísticas',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.calendar_month_outlined),
-              selectedIcon:
-                  Icon(Icons.calendar_month, color: AppTheme.accentRed),
-              label: 'Calendario',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.credit_card_outlined),
-              selectedIcon: Icon(Icons.credit_card, color: AppTheme.accentRed),
-              label: 'Deudas',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.trending_up_outlined),
-              selectedIcon: Icon(Icons.trending_up, color: AppTheme.accentRed),
-              label: 'Inversiones',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.smart_toy_outlined),
-              selectedIcon: Icon(Icons.smart_toy, color: AppTheme.accentRed),
-              label: 'IA',
-            ),
-          ].take(12).toList(),
-        ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.settings,
+                color: isDark
+                    ? AppTheme.textSecondary
+                    : AppTheme.lightTextSecondary),
+            title: Text('Configuración',
+                style: TextStyle(
+                    color: isDark
+                        ? AppTheme.textPrimary
+                        : AppTheme.lightTextPrimary)),
+            onTap: () {
+              Navigator.pop(context);
+              _openSettings();
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
+
+  Widget _buildRailLayout(bool isDark) {
+    return Scaffold(
+      body: Row(
+        children: [
+          NavigationRail(
+            extended: true,
+            minExtendedWidth: 220,
+            backgroundColor:
+                isDark ? AppTheme.cardBackground : AppTheme.lightCardBackground,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+            },
+            leading: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentRed.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.account_balance_wallet,
+                        color: AppTheme.accentRed, size: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Finanzas',
+                    style: TextStyle(
+                      color: isDark
+                          ? AppTheme.textPrimary
+                          : AppTheme.lightTextPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            trailing: Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: IconButton(
+                    icon: Icon(Icons.settings,
+                        color: isDark
+                            ? AppTheme.textSecondary
+                            : AppTheme.lightTextSecondary),
+                    onPressed: _openSettings,
+                  ),
+                ),
+              ),
+            ),
+            destinations: _navItems.map((item) {
+              return NavigationRailDestination(
+                icon: Icon(item.icon,
+                    color: isDark
+                        ? AppTheme.textSecondary
+                        : AppTheme.lightTextSecondary),
+                selectedIcon:
+                    Icon(item.selectedIcon, color: AppTheme.accentRed),
+                label: Text(
+                  item.label,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppTheme.textPrimary
+                        : AppTheme.lightTextPrimary,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark ? AppTheme.background : AppTheme.lightBackground,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark
+                            ? AppTheme.cardBorder
+                            : AppTheme.lightCardBorder,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        _navItems[_selectedIndex].label,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppTheme.textPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      FloatingActionButton.small(
+                        onPressed: _showQuickAdd,
+                        backgroundColor: AppTheme.accentRed,
+                        child: const Icon(Icons.add, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: _navItems[_selectedIndex].screen,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final Widget screen;
+
+  _NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.screen,
+  });
 }

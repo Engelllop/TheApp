@@ -13,11 +13,11 @@ class AppTheme {
   static const Color accentOrange = Color(0xFFf4a261);
   static const Color accentCyan = Color(0xFF8ecae6);
 
-  static const Color lightBackground = Color(0xFFf8f9fa);
-  static const Color lightCardBackground = Color(0xFFffffff);
-  static const Color lightCardBorder = Color(0xFFe0e0e0);
-  static const Color lightTextPrimary = Color(0xFF1a1a2e);
-  static const Color lightTextSecondary = Color(0xFF6c757d);
+  static const Color lightBackground = Color(0xFFF5F5F5);
+  static const Color lightCardBackground = Color(0xFFFFFFFF);
+  static const Color lightCardBorder = Color(0xFFE8E8E8);
+  static const Color lightTextPrimary = Color(0xFF212121);
+  static const Color lightTextSecondary = Color(0xFF757575);
 
   static const List<Color> chartColors = [
     accentRed,
